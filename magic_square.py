@@ -73,6 +73,32 @@ def vedicMathsSolveMagicSquare(size):
     print(magicSquare)
     return magicSquare
 
+# https://www.1728.org/magicsq2.htm
+def doublyEvenMagicSquareSolve(size):
+    if size % 4 != 0:
+        print("Size must be divisble by 4")
+        return
+    
+    magicSquare = np.arange(1, size * size + 1)
+    magicSquare = np.reshape(magicSquare, (-1, size))
+
+    padding = int(size / 4)
+    magicSquare[0 : padding, padding : size - padding] = 0
+    magicSquare[size - padding : size, padding : size - padding] = 0
+    magicSquare[padding : size - padding, 0 : padding] = 0
+    magicSquare[padding :size - padding, size - padding : size] = 0
+
+    index = size * size
+    for i in range(0, size):
+        for j in range(0, size):
+            if magicSquare[i, j] == 0:
+                magicSquare[i, j] = index
+            index = index - 1
+            
+    print("Found magic square with magic constant: " + str(calculateMagicConstant(size)) + " validated: " + str(validation(magicSquare.flatten(), size)))
+    print(magicSquare)
+    return magicSquare
+
 def validation(numbers, size):
     magicConstant = calculateMagicConstant(size)
     arr = np.reshape(np.copy(numbers), (-1, size))
@@ -84,6 +110,7 @@ def validation(numbers, size):
     return True
     
 
-bogoSolveMagicSquare(3)
-positionCalcuateSolveMagicSquare(5)
-vedicMathsSolveMagicSquare(7)
+# bogoSolveMagicSquare(3)
+# positionCalcuateSolveMagicSquare(5)
+# vedicMathsSolveMagicSquare(7)
+doublyEvenMagicSquareSolve(8)
