@@ -48,31 +48,33 @@ def positionCalcuateSolveMagicSquare(size):
     return magicSquare
 
 
-# https://www.geeksforgeeks.org/magic-square/
 # Only for odd sized magic squares
-def vedicMathsSolveMagicSquare(size, startNumber):
+# https://www.1728.org/magicsq3.htm
+def oddMagicSquareSolve(size, startNumber):
     numbers = np.arange(startNumber, startNumber + size * size)
     magicSquare = np.zeros((size, size))
-    elementPos = [int(size / 2), size - 1]
+    elementPos = [0, int(size / 2)]
     magicSquare[elementPos[0], elementPos[1]] = numbers[0]
 
+    # print(magicSquare)
     for i in range(1, len(numbers)):
-        elementPos = [elementPos[0] + 1, elementPos[1] + 1]
-        if elementPos[0] == size and elementPos[1] == size:
-            elementPos = [elementPos[0] - 1, elementPos[1] - 2]
-        elif elementPos[1] == size and elementPos[0] < size:
+        elementPos = [elementPos[0] - 1, elementPos[1] + 1]
+        if elementPos[0] == -1 and elementPos[1] == size:
+            elementPos = [elementPos[0] + 2, elementPos[1] - 1]
+        if elementPos[1] >= size and elementPos[0] < size:
             elementPos[1] = 0
-        elif elementPos[0] == size and elementPos[1] < size:
-            elementPos[0] = 0
+        elif elementPos[0] == -1 and elementPos[1] < size:
+            elementPos[0] = size - 1
 
         if magicSquare[elementPos[0], elementPos[1]] != 0:
-            elementPos = [elementPos[0] - 1, elementPos[1] - 2]
+            elementPos = [elementPos[0] + 2, elementPos[1] - 1]
 
         magicSquare[elementPos[0], elementPos[1]] = numbers[i]
 
     # print("Found magic square with magic constant: " + str(calculateMagicConstant(size)) + " validated: " + str(validation(magicSquare.flatten(), size)))
     # print(magicSquare)
     return magicSquare
+
 
 # https://www.1728.org/magicsq2.htm
 def doublyEvenMagicSquareSolve(size):
@@ -110,30 +112,30 @@ def singlyEvenMagicSquareSolve(size):
     magicSquare = np.zeros((size,size))
 
     subSquareSize = int(size / 2)
-    sub1 = vedicMathsSolveMagicSquare(subSquareSize, 1)
-    sub2 = vedicMathsSolveMagicSquare(subSquareSize, 1 + 1 * subSquareSize * subSquareSize)
-    sub3 = vedicMathsSolveMagicSquare(subSquareSize, 1 + 2 * subSquareSize * subSquareSize)
-    sub4 = vedicMathsSolveMagicSquare(subSquareSize, 1 + 3 * subSquareSize * subSquareSize)
+    sub1 = oddMagicSquareSolve(subSquareSize, 1)
+    sub2 = oddMagicSquareSolve(subSquareSize, 1 + 1 * subSquareSize * subSquareSize)
+    sub3 = oddMagicSquareSolve(subSquareSize, 1 + 2 * subSquareSize * subSquareSize)
+    sub4 = oddMagicSquareSolve(subSquareSize, 1 + 3 * subSquareSize * subSquareSize)
     magicSquare = np.vstack((np.hstack((sub1, sub3)), np.hstack((sub4, sub2))))
-    print(magicSquare)
 
-    temp = magicSquare[0, 0]
-    magicSquare[0, 0] = magicSquare[3, 0]
-    magicSquare[3, 0] = temp
+    shift = int(size / 4)
 
-    temp = magicSquare[2, 0]
-    magicSquare[2, 0] = magicSquare[5, 0]
-    magicSquare[5, 0] = temp
+    temp = np.vstack((magicSquare[subSquareSize :, 0 : shift], magicSquare[: subSquareSize, 0 : shift]))
+    magicSquare[:, 0 : shift] = temp
+    temp = magicSquare[shift, 0]
 
-    temp = magicSquare[1, 1]
-    magicSquare[1, 1] = magicSquare[4, 1]
-    magicSquare[4, 1] = temp
+    magicSquare[shift, 0] = magicSquare[subSquareSize + shift, 0]
+    magicSquare[subSquareSize + shift, 0] = temp
+    
+    temp = magicSquare[shift, shift]
+    magicSquare[shift, shift] = magicSquare[subSquareSize + shift, shift]
+    magicSquare[subSquareSize + shift, shift] = temp
+   
+    shift = shift - 1
+    temp = np.vstack((magicSquare[subSquareSize :, - shift :], magicSquare[: subSquareSize, - shift :]))
+    magicSquare[:, - shift :] = temp
 
-    temp = np.hstack((magicSquare[:3, 5], magicSquare[3:, 5]))
-    magicSquare[:, 5] = temp
-    print(validation(magicSquare, size))
-
-    # print("Found magic square with magic constant: " + str(calculateMagicConstant(size)) + " validated: " + str(validation(magicSquare.flatten(), size)))
+    print("Found magic square with magic constant: " + str(calculateMagicConstant(size)) + " validated: " + str(validation(magicSquare.flatten(), size)))
     print(magicSquare)
     return magicSquare
 
@@ -153,4 +155,5 @@ def validation(numbers, size):
 # positionCalcuateSolveMagicSquare(5)
 # vedicMathsSolveMagicSquare(3, 10)
 # doublyEvenMagicSquareSolve(8)
-singlyEvenMagicSquareSolve(6)
+# oddMagicSquareSolve(3, 1)
+singlyEvenMagicSquareSolve(10)
