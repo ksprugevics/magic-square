@@ -4,24 +4,58 @@ import numpy as np
 def calculateMagicConstant(size):
     return size * (size * size + 1) / 2
 
+
 # Shuffle until we get a magic square (infinitely slow) but on average took ~100k iterations
 def bogoSolveMagicSquare(size):
     numbers = np.arange(1, size * size + 1)
     iterations = 0
-    while not validation(numbers, size):
+    while not validate(numbers, size):
         np.random.shuffle(numbers)
         iterations = iterations + 1
         print(iterations)
 
-    print("Found magic square in " + str(iterations) + " iterations with magic constant: " + str(calculateMagicConstant(size)) + " validated: " + str(validation(numbers, size)))
+    print("Found magic square in " + str(iterations) + " iterations with magic constant: " + str(calculateMagicConstant(size)) + " validated: " + str(validate(numbers, size)))
     numbers = np.reshape(numbers, (-1, size))
     print(numbers)
     return numbers
 
 
-# https://www.geeksforgeeks.org/magic-square/
+# Only for odd sized magic squares - prefer this one
+# https://www.1728.org/magicsq1.htm
+def oddMagicSquareSolve(size, startNumber):
+    if size % 2 == 0:
+        print("Size must be odd")
+        return
+        
+    numbers = np.arange(startNumber, startNumber + size * size)
+    magicSquare = np.zeros((size, size))
+    elementPos = [0, int(size / 2)]
+    magicSquare[elementPos[0], elementPos[1]] = numbers[0]
+
+    for i in range(1, len(numbers)):
+        elementPos = [elementPos[0] - 1, elementPos[1] + 1]
+        if elementPos[0] == -1 and elementPos[1] == size:
+            elementPos = [elementPos[0] + 2, elementPos[1] - 1]
+        if elementPos[1] >= size and elementPos[0] < size:
+            elementPos[1] = 0
+        elif elementPos[0] == -1 and elementPos[1] < size:
+            elementPos[0] = size - 1
+
+        if magicSquare[elementPos[0], elementPos[1]] != 0:
+            elementPos = [elementPos[0] + 2, elementPos[1] - 1]
+
+        magicSquare[elementPos[0], elementPos[1]] = numbers[i]
+
+    return magicSquare
+
+
 # Only for odd sized magic squares
-def positionCalcuateSolveMagicSquare(size):
+# https://www.geeksforgeeks.org/magic-square/
+def oddMagicSquareSolve2(size):
+    if size % 2 == 0:
+        print("Size must be odd")
+        return
+    
     numbers = np.arange(1, size * size + 1)
     magicSquare = np.zeros((size, size))
     elementPos = [int(size / 2), size - 1]
@@ -43,39 +77,10 @@ def positionCalcuateSolveMagicSquare(size):
 
         magicSquare[elementPos[0], elementPos[1]] = numbers[i]
 
-    print("Found magic square with magic constant: " + str(calculateMagicConstant(size)) + " validated: " + str(validation(magicSquare.flatten(), size)))
-    print(magicSquare)
     return magicSquare
 
 
-# Only for odd sized magic squares
-# https://www.1728.org/magicsq3.htm
-def oddMagicSquareSolve(size, startNumber):
-    numbers = np.arange(startNumber, startNumber + size * size)
-    magicSquare = np.zeros((size, size))
-    elementPos = [0, int(size / 2)]
-    magicSquare[elementPos[0], elementPos[1]] = numbers[0]
-
-    # print(magicSquare)
-    for i in range(1, len(numbers)):
-        elementPos = [elementPos[0] - 1, elementPos[1] + 1]
-        if elementPos[0] == -1 and elementPos[1] == size:
-            elementPos = [elementPos[0] + 2, elementPos[1] - 1]
-        if elementPos[1] >= size and elementPos[0] < size:
-            elementPos[1] = 0
-        elif elementPos[0] == -1 and elementPos[1] < size:
-            elementPos[0] = size - 1
-
-        if magicSquare[elementPos[0], elementPos[1]] != 0:
-            elementPos = [elementPos[0] + 2, elementPos[1] - 1]
-
-        magicSquare[elementPos[0], elementPos[1]] = numbers[i]
-
-    # print("Found magic square with magic constant: " + str(calculateMagicConstant(size)) + " validated: " + str(validation(magicSquare.flatten(), size)))
-    # print(magicSquare)
-    return magicSquare
-
-
+# Only for doubly-even magic squares - divisble by 4
 # https://www.1728.org/magicsq2.htm
 def doublyEvenMagicSquareSolve(size):
     if size % 4 != 0:
@@ -97,12 +102,11 @@ def doublyEvenMagicSquareSolve(size):
             if magicSquare[i, j] == 0:
                 magicSquare[i, j] = index
             index = index - 1
-            
-    print("Found magic square with magic constant: " + str(calculateMagicConstant(size)) + " validated: " + str(validation(magicSquare.flatten(), size)))
-    print(magicSquare)
+
     return magicSquare
 
 
+# Only for singly-even magic squares - divisble by 2 but not by 4
 # https://www.1728.org/magicsq3.htm
 def singlyEvenMagicSquareSolve(size):
     if size % 4 == 0 or size % 2 != 0 or size == 2:
@@ -135,12 +139,10 @@ def singlyEvenMagicSquareSolve(size):
     temp = np.vstack((magicSquare[subSquareSize :, - shift :], magicSquare[: subSquareSize, - shift :]))
     magicSquare[:, - shift :] = temp
 
-    print("Found magic square with magic constant: " + str(calculateMagicConstant(size)) + " validated: " + str(validation(magicSquare.flatten(), size)))
-    print(magicSquare)
     return magicSquare
 
 
-def validation(numbers, size):
+def validate(numbers, size):
     magicConstant = calculateMagicConstant(size)
     arr = np.reshape(np.copy(numbers), (-1, size))
     for i in range(0, size):
@@ -151,9 +153,23 @@ def validation(numbers, size):
     return True
     
 
-# bogoSolveMagicSquare(3)
-# positionCalcuateSolveMagicSquare(5)
-# vedicMathsSolveMagicSquare(3, 10)
-# doublyEvenMagicSquareSolve(8)
-# oddMagicSquareSolve(3, 1)
-singlyEvenMagicSquareSolve(10)
+if __name__ == '__main__':
+    m1 = oddMagicSquareSolve2(3)
+    print(m1)
+    print(validate(m1, m1.shape[0]))
+    
+    m2 = oddMagicSquareSolve(7, 1)
+    print(m2)
+    print(validate(m2, m2.shape[0]))
+
+    m3 = doublyEvenMagicSquareSolve(8)
+    print(m3)
+    print(validate(m3, m3.shape[0]))
+
+    m4 = singlyEvenMagicSquareSolve(110)
+    print(m4)
+    print(validate(m4, m4.shape[0]))
+    
+    # Shuffles array til finds the magic square
+    # bogoSolveMagicSquare(3)
+    
